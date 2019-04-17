@@ -1,6 +1,7 @@
 import abc
 import src.tsp.rand as rand
 import numpy as np
+from src.tsp.cooling import Cooling, CoolingType
 
 
 class Annealing(abc.ABC):
@@ -29,13 +30,15 @@ class Annealing(abc.ABC):
 class Tsp(Annealing):
     MAX_DIFFUSION = 0.4
     MIN_TEMPERATURE = 0.5
-    MAX_TEMPERATURE = 100
+    MAX_TEMPERATURE = 1000
     DEFAULT_MATRIX_SIZE = 100
     DEFAULT_MATRIX_MAX_VALUE = 100
 
-    def __init__(self, **kwargs):
+    def __init__(self, cooling_type: CoolingType, **kwargs):
         super().__init__()
         self.temperature = Tsp.MAX_TEMPERATURE
+        cooling = Cooling(Tsp.MAX_TEMPERATURE, 1.01, cooling_type)
+        self.cooling_method = cooling.get_selected()
 
         self.matrix = None
         for key in kwargs:
@@ -43,12 +46,13 @@ class Tsp(Annealing):
                 self.matrix = kwargs[key]
         if self.matrix is None:
             self.matrix = Tsp.generate_matrix()
-
         self.route = np.array([i for i in range(self.matrix.shape[0])])
 
         self.value = self._evaluate()
 
     def anneal(self):
+        self.temperature = Tsp.MAX_TEMPERATURE
+        iteration = 1
         best_value, best_route = self.value, self.route
         while self.temperature > Tsp.MIN_TEMPERATURE:
             guess = self._mutate()
@@ -58,11 +62,13 @@ class Tsp(Annealing):
                 best_value, best_route = score, guess
             elif self._should_change(score - best_value):
                 self.value, self.route = score, guess
-            self.temperature = self._cooling()
+            self.temperature = self._cooling(iteration)
+            iteration += 1
+        print(iteration)
         self.value, self.route = best_value, best_route
 
     def _should_change(self, delta) -> bool:
-        probability = np.exp(-delta/self.temperature)
+        probability = np.exp(-delta / self.temperature)
         return True if np.random.rand() <= probability else False
 
     def _evaluate(self, route=None) -> int:
@@ -93,8 +99,8 @@ class Tsp(Annealing):
         k = ((self.temperature / delta) * Tsp.MAX_DIFFUSION * self.route.size) / 2 + 1
         return int(k)
 
-    def _cooling(self, cooling_method=None):
-        return self.temperature / 2
+    def _cooling(self, i):
+        return self.cooling_method(i, self.temperature)
 
     @staticmethod
     def _swap(route, pair: list):
@@ -144,8 +150,7 @@ class Tsp(Annealing):
 
     @staticmethod
     def generate_matrix():
-        matrix = rand.get_random_matrix(Tsp.DEFAULT_MATRIX_SIZE,
-                                        Tsp.DEFAULT_MATRIX_SIZE, 1,
-                                        Tsp.DEFAULT_MATRIX_MAX_VALUE)
+        matrix = rand.get_symmetric_matrix(Tsp.DEFAULT_MATRIX_SIZE, 1,
+                                           Tsp.DEFAULT_MATRIX_MAX_VALUE)
         np.fill_diagonal(matrix, Tsp.DEFAULT_MATRIX_MAX_VALUE + 1)
         return matrix

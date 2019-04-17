@@ -13,6 +13,7 @@ class TestTsp(unittest.TestCase):
         self.assertEqual(obj.value, 10)
 
     def test_validate_route(self):
+        # deprecated
         obj = anl.Tsp(matrix=np.array([[10, 3, 2], [5, 10, 1], [6, 4, 10]]))
         self.assertTrue(anl.Tsp.isvalid(obj.route))
         self.assertTrue(anl.Tsp.isvalid(np.array([0])))  # один город
