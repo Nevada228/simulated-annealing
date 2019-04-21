@@ -15,7 +15,7 @@ for idx, pair in enumerate(pairs):
     matrix[b[0], a[0]] = distance
 numpy.fill_diagonal(matrix, matrix.max() + 1)
 
-test = tsp.Tsp(CoolingType.CONSTANT, matrix=matrix)
+test = tsp.Annealing(CoolingType.CONSTANT, matrix=matrix)
 
 for i in range(10):
     test.anneal()

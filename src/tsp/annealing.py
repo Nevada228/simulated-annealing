@@ -2,9 +2,10 @@ import abc
 import src.tsp.rand as rand
 import numpy as np
 from src.tsp.cooling import Cooling, CoolingType
+from src.tsp.tsp import Tsp
 
 
-class Annealing(abc.ABC):
+class AbstractAnnealing(abc.ABC):
 
     @abc.abstractmethod
     def __init__(self):
@@ -27,34 +28,41 @@ class Annealing(abc.ABC):
         pass
 
 
-class Tsp(Annealing):
+class Annealing(AbstractAnnealing, Tsp):
     MAX_DIFFUSION = 0.4
     MIN_TEMPERATURE = 0.5
     MAX_TEMPERATURE = 1000
     DEFAULT_MATRIX_SIZE = 100
     DEFAULT_MATRIX_MAX_VALUE = 100
+    REPEAT = 10
 
     def __init__(self, cooling_type: CoolingType, **kwargs):
-        super().__init__()
-        self.temperature = Tsp.MAX_TEMPERATURE
-        cooling = Cooling(Tsp.MAX_TEMPERATURE, 1.01, cooling_type)
+        AbstractAnnealing.__init__(self)
+        Tsp.__init__(self)
+
+        self.temperature = Annealing.MAX_TEMPERATURE
+        cooling = Cooling(Annealing.MAX_TEMPERATURE, 1.01, cooling_type)
         self.cooling_method = cooling.get_selected()
 
-        self.matrix = None
         for key in kwargs:
             if key is "matrix":
                 self.matrix = kwargs[key]
         if self.matrix is None:
-            self.matrix = Tsp.generate_matrix()
+            self.matrix = Annealing.generate_matrix()
         self.route = np.array([i for i in range(self.matrix.shape[0])])
 
         self.value = self._evaluate()
 
+    def find_best_route(self) -> (np.ndarray, int):
+        for i in range(Annealing.REPEAT):
+            self.anneal()
+        return self.route, self.value
+
     def anneal(self):
-        self.temperature = Tsp.MAX_TEMPERATURE
+        self.temperature = Annealing.MAX_TEMPERATURE
         iteration = 1
         best_value, best_route = self.value, self.route
-        while self.temperature > Tsp.MIN_TEMPERATURE:
+        while self.temperature > Annealing.MIN_TEMPERATURE:
             guess = self._mutate()
             score = self._evaluate(guess)
             if score <= best_value:
@@ -64,7 +72,7 @@ class Tsp(Annealing):
                 self.value, self.route = score, guess
             self.temperature = self._cooling(iteration)
             iteration += 1
-        print(iteration)
+        # print(iteration)
         self.value, self.route = best_value, best_route
 
     def _should_change(self, delta) -> bool:
@@ -83,7 +91,6 @@ class Tsp(Annealing):
                 prev = to
                 continue
             value += self.matrix[prev, to]
-            # print(type(value))
             prev = to
         value += self.matrix[prev, first]
         return value
@@ -91,12 +98,12 @@ class Tsp(Annealing):
     def _mutate(self):
         n = self._diffusion_rate()
         new_route = np.copy(self.route)
-        Tsp._swap_n(new_route, n)
+        Annealing._swap_n(new_route, n)
         return new_route
 
     def _diffusion_rate(self):
-        delta = Tsp.MAX_TEMPERATURE - Tsp.MIN_TEMPERATURE
-        k = ((self.temperature / delta) * Tsp.MAX_DIFFUSION * self.route.size) / 2 + 1
+        delta = Annealing.MAX_TEMPERATURE - Annealing.MIN_TEMPERATURE
+        k = ((self.temperature / delta) * Annealing.MAX_DIFFUSION * self.route.size) / 2 + 1
         return int(k)
 
     def _cooling(self, i):
@@ -113,7 +120,7 @@ class Tsp(Annealing):
     def _swap_n(route, n=1):
         idxs = np.random.choice(route.size, (n, 2), replace=False)
         for pair in idxs:
-            Tsp._swap(route, pair)
+            Annealing._swap(route, pair)
 
     # def _evaluate(self, route=None):
     #     if route is None:
@@ -150,7 +157,7 @@ class Tsp(Annealing):
 
     @staticmethod
     def generate_matrix():
-        matrix = rand.get_symmetric_matrix(Tsp.DEFAULT_MATRIX_SIZE, 1,
-                                           Tsp.DEFAULT_MATRIX_MAX_VALUE)
-        np.fill_diagonal(matrix, Tsp.DEFAULT_MATRIX_MAX_VALUE + 1)
+        matrix = rand.get_symmetric_matrix(Annealing.DEFAULT_MATRIX_SIZE, 1,
+                                           Annealing.DEFAULT_MATRIX_MAX_VALUE)
+        np.fill_diagonal(matrix, Annealing.DEFAULT_MATRIX_MAX_VALUE + 1)
         return matrix
