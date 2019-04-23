@@ -1,5 +1,6 @@
-import random, numpy, math, matplotlib.pyplot as plt
+import random, numpy, math
 import src.tsp.annealing as tsp
+from src.plot.utils import PlotData, PlotUtils
 from src.tsp.cooling import CoolingType
 
 N = 10
@@ -22,6 +23,7 @@ for i in range(10):
 
 tour = test.route
 
-plt.plot([cities[tour[i % N]][1][0] for i in range(N + 1)],
-         [cities[tour[i % N]][1][1] for i in range(N + 1)], 'xb-')
-plt.show()
+datas = [PlotData([cities[tour[i % N]][1][0] for i in range(N + 1)],
+                  [cities[tour[i % N]][1][1] for i in range(N + 1)],
+                  color="blue", label="ff")]
+PlotUtils.build_plot(datas)
