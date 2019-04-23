@@ -36,17 +36,17 @@ class Annealing(AbstractAnnealing, Tsp):
     DEFAULT_MATRIX_MAX_VALUE = 100
     REPEAT = 10
 
-    def __init__(self, cooling_type: CoolingType, **kwargs):
+    def __init__(self, cooling_type: CoolingType, matrix=None, reduction=True):
         AbstractAnnealing.__init__(self)
         Tsp.__init__(self)
 
+        self.reduction = reduction
         self.temperature = Annealing.MAX_TEMPERATURE
         cooling = Cooling(Annealing.MAX_TEMPERATURE, 1.01, cooling_type)
         self.cooling_method = cooling.get_selected()
 
-        for key in kwargs:
-            if key is "matrix":
-                self.matrix = kwargs[key]
+        self.matrix = matrix
+
         if self.matrix is None:
             self.matrix = Annealing.generate_matrix()
         self.route = np.array([i for i in range(self.matrix.shape[0])])
@@ -96,15 +96,18 @@ class Annealing(AbstractAnnealing, Tsp):
         return value
 
     def _mutate(self):
-        n = self._diffusion_rate()
+        n = self._diffusion_rate() if self.reduction else self._fixed_size()
         new_route = np.copy(self.route)
         Annealing._swap_n(new_route, n)
         return new_route
 
-    def _diffusion_rate(self):
+    def _diffusion_rate(self) -> int:
         delta = Annealing.MAX_TEMPERATURE - Annealing.MIN_TEMPERATURE
         k = ((self.temperature / delta) * Annealing.MAX_DIFFUSION * self.route.size) / 2 + 1
         return int(k)
+
+    def _fixed_size(self) -> int:
+        return int((self.route.size * Annealing.MAX_DIFFUSION) / 2 + 1)
 
     def _cooling(self, i):
         return self.cooling_method(i, self.temperature)
