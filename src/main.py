@@ -1,5 +1,8 @@
-import src.tsp.annealing as tsp
-
-test = tsp.Tsp()
-test.anneal()
-
+# import src.tsp.annealing as tsp
+# from src.tsp.cooling import CoolingType
+#
+# test = tsp.Annealing(CoolingType.CONSTANT)
+# for i in range(10):
+#     print(test._evaluate())
+#     test.anneal()
+#     print(test._evaluate())

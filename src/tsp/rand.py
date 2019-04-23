@@ -22,3 +22,8 @@ def get_random_vector(n: int = 5, low=0.0, high=1.0):
     :return: вектор
     """
     return ((high - low) * np.random.rand(n) + low).astype(int)
+
+
+def get_symmetric_matrix(n: int = 5, low=5, high=10):
+    m = get_random_matrix(n, n, low=low, high=high)
+    return ((m + m.T) / 2).astype(int)
