@@ -2,6 +2,8 @@ import random, numpy, math
 import src.tsp.annealing as tsp
 from src.plot.utils import PlotData, PlotUtils
 from src.tsp.cooling import CoolingType
+from src.tsp.greedy import Greedy
+from src.tsp.exhaustive import Exhaustive
 
 N = 10
 
@@ -16,14 +18,25 @@ for idx, pair in enumerate(pairs):
     matrix[b[0], a[0]] = distance
 numpy.fill_diagonal(matrix, matrix.max() + 1)
 
-test = tsp.Annealing(CoolingType.CONSTANT, matrix=matrix)
+annealing = tsp.Annealing(CoolingType.CONSTANT, matrix=matrix)
+exhaustive = Exhaustive(matrix)
+greedy = Greedy(matrix)
 
-for i in range(10):
-    test.anneal()
+greedyTour, greedyVal = greedy.find_best_route()
+exhTour, exhVal = exhaustive.find_best_route()
 
-tour = test.route
+for i in range(1):
+    annealing.anneal()
 
-datas = [PlotData([cities[tour[i % N]][1][0] for i in range(N + 1)],
-                  [cities[tour[i % N]][1][1] for i in range(N + 1)],
-                  color="blue", label="ff")]
+annTour = annealing.route
+
+datas = [PlotData([cities[annTour[i % N]][1][0] for i in range(N + 1)],
+                  [cities[annTour[i % N]][1][1] for i in range(N + 1)],
+                  color="blue", label="Annealing", plotvalue=annealing.value),
+         PlotData([cities[greedyTour[i % N]][1][0] for i in range(N + 1)],
+                  [cities[greedyTour[i % N]][1][1] for i in range(N + 1)],
+                  color="green", label="Greedy", plotvalue=greedyVal),
+         PlotData([cities[exhTour[i % N]][1][0] for i in range(N + 1)],
+                  [cities[exhTour[i % N]][1][1] for i in range(N + 1)],
+                  color="red", label="Exaustive", plotvalue=exhVal)]
 PlotUtils.build_plot(datas)
