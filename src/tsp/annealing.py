@@ -16,10 +16,6 @@ class AbstractAnnealing(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _evaluate(self, route):
-        pass
-
-    @abc.abstractmethod
     def _mutate(self):
         pass
 
@@ -78,22 +74,6 @@ class Annealing(AbstractAnnealing, Tsp):
     def _should_change(self, delta) -> bool:
         probability = np.exp(-delta / self.temperature)
         return True if np.random.rand() <= probability else False
-
-    def _evaluate(self, route=None) -> int:
-        if route is None:
-            route = self.route
-        prev = None
-        first = None
-        value = 0
-        for to in route:
-            if prev is None:
-                first = to
-                prev = to
-                continue
-            value += self.matrix[prev, to]
-            prev = to
-        value += self.matrix[prev, first]
-        return value
 
     def _mutate(self):
         n = self._diffusion_rate() if self.reduction else self._fixed_size()
