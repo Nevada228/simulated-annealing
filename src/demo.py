@@ -24,15 +24,11 @@ greedy = Greedy(matrix)
 
 greedyTour, greedyVal = greedy.find_best_route()
 exhTour, exhVal = exhaustive.find_best_route()
-
-for i in range(1):
-    annealing.anneal()
-
-annTour = annealing.route
+annTour, annVal = annealing.find_best_route()
 
 datas = [PlotData([cities[annTour[i % N]][1][0] for i in range(N + 1)],
                   [cities[annTour[i % N]][1][1] for i in range(N + 1)],
-                  color="blue", label="Annealing", plotvalue=annealing.value),
+                  color="blue", label="Annealing", plotvalue=annVal),
          PlotData([cities[greedyTour[i % N]][1][0] for i in range(N + 1)],
                   [cities[greedyTour[i % N]][1][1] for i in range(N + 1)],
                   color="green", label="Greedy", plotvalue=greedyVal),

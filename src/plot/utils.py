@@ -4,13 +4,13 @@ from typing import List
 
 
 class PlotData:
-    def __init__(self, xdata, ydata, color="red", dotted=False, label="", plotValue=0):
+    def __init__(self, xdata, ydata, color="red", dotted=False, label="", plotvalue=0):
         self.xdata = xdata
         self.ydata = ydata
         self.label = label
         self.dotted = dotted
         self.color = color
-        self.plotvalue = plotValue
+        self.plotvalue = plotvalue
 
 
 class PlotUtils:
